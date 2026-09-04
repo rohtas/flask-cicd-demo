@@ -6,7 +6,29 @@ on:
       - main
 
 jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: rohtasprajapati/flask-cicd-demo:latest
+
   deploy:
+    needs: build
     runs-on: self-hosted
 
     steps:
@@ -18,9 +40,9 @@ jobs:
           docker stop flask-demo || true
           docker rm flask-demo || true
 
-      - name: Run container
+      - name: Run new container
         run: |
           docker run -d \
-          --name flask-demo \
-          -p 5000:5000 \
-          rohtasprajapati/flask-cicd-demo:latest
+            --name flask-demo \
+            -p 5000:5000 \
+            rohtasprajapati/flask-cicd-demo:latest
